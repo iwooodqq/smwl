@@ -6,4 +6,6 @@ import org.example.admin.dto.res.UserResDto;
 
 public interface UserService extends IService<UserDo> {
     UserResDto getUserByusername(String username);
+
+    Boolean hasUsername(String username);
 }
