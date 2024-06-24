@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import org.example.admin.common.serialize.PhoneDesensitizationSerializer;
 
-import java.util.Date;
-
 @Data
-public class UserResDto {
+public class UserResTrueDto {
     /**
      * id
      */
@@ -25,7 +23,6 @@ public class UserResDto {
     /**
      * 手机号
      */
-    @JsonSerialize(using = PhoneDesensitizationSerializer.class)
     private String phone;
 
     /**
