@@ -45,21 +45,15 @@ public class UserServiceimpl extends ServiceImpl<UserMapper, UserDo> implements 
      */
     @Override
     public Boolean hasUsername(String username) {
-        LambdaQueryWrapper<UserDo> queryWrapper = Wrappers.lambdaQuery(UserDo.class).eq(UserDo::getUsername, username);
-        UserDo userDo = baseMapper.selectOne(queryWrapper);
-        if(userDo==null){
-            return true;
-        }else {
-            return false;
-        }
+       return !userRegisterCachePenetrationBloomFilter.contains(username);
     }
     /**
      * 用户注册
      */
     @Override
     public void save(UserRegisterReqDTO userRegisterReqDTO) {
-        if (hasUsername(userRegisterReqDTO.getUsername())==null){
-            throw new ClientException(UserErrorCodeEnum.USER_NULL);
+        if (!hasUsername(userRegisterReqDTO.getUsername())){
+            throw new ClientException(USER_EXIST);
         }
         UserDo userDo = new UserDo();
         BeanUtils.copyProperties(userRegisterReqDTO,userDo);

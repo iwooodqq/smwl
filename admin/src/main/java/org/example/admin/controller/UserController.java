@@ -38,8 +38,7 @@ public class UserController {
      */
     @GetMapping("/api/short-link/admin/v1/user/has-username/")
     public Result<Boolean> getUserHasUsername(@RequestParam String username) {
-        Boolean bo=userService.hasUsername(username);
-        return Results.success(bo);
+        return Results.success(userService.hasUsername(username));
     }
     /**
      * 用户注册
