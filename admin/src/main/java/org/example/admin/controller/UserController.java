@@ -4,7 +4,10 @@ import cn.hutool.core.bean.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.example.admin.common.convention.result.Result;
 import org.example.admin.common.convention.result.Results;
+import org.example.admin.dto.req.UserLoginReqDTO;
 import org.example.admin.dto.req.UserRegisterReqDTO;
+import org.example.admin.dto.req.UserUpdateReqDTO;
+import org.example.admin.dto.res.UserLoginResDto;
 import org.example.admin.dto.res.UserResDto;
 import org.example.admin.dto.res.UserResTrueDto;
 import org.example.admin.service.UserService;
@@ -47,5 +50,28 @@ public class UserController {
     public Result<Void> saveUser(@RequestBody UserRegisterReqDTO userRegisterReqDTO) {
         userService.save(userRegisterReqDTO);
         return Results.success();
+    }
+    /**
+     * 修改用户
+     */
+    @PutMapping("/api/short-link/admin/v1/user")
+    public Result<Void> updateUser(@RequestBody UserUpdateReqDTO userUpdateReqDTO) {
+        userService.updateUser(userUpdateReqDTO);
+        return Results.success();
+    }
+    /**
+     * 用户登录
+     */
+    @PostMapping("/api/short-link/admin/v1/user/login")
+    public Result<UserLoginResDto> login(@RequestBody UserLoginReqDTO userLoginReqDTO) {
+        UserLoginResDto userLoginResDto= userService.login(userLoginReqDTO);
+        return Results.success(userLoginResDto);
+    }
+    /**
+     * 检查是否登录
+     */
+    @GetMapping("/api/short-link/admin/v1/user/check-login")
+    public Boolean checkLogin(@RequestParam("token") String token,@RequestParam("username") String username) {
+        return userService.checkLogin(token,username);
     }
 }
