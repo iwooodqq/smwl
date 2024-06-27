@@ -2,6 +2,7 @@ package org.example.admin.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.example.admin.dao.entity.GroupDo;
+import org.example.admin.dto.req.GroupSortReqDTO;
 import org.example.admin.dto.req.GroupUpdateReqDTO;
 import org.example.admin.dto.res.GroupResDto;
 
@@ -17,4 +18,5 @@ public interface GroupService extends IService<GroupDo> {
 
     void deletegroup(String gid);
 
+    void sortgroup(List<GroupSortReqDTO> groupSortReqDTOList);
 }

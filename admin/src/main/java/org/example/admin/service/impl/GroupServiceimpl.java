@@ -10,6 +10,7 @@ import org.example.admin.common.biz.user.UserContext;
 import org.example.admin.dao.entity.GroupDo;
 import org.example.admin.dao.entity.UserDo;
 import org.example.admin.dao.mapper.GroupMapper;
+import org.example.admin.dto.req.GroupSortReqDTO;
 import org.example.admin.dto.req.GroupUpdateReqDTO;
 import org.example.admin.dto.res.GroupResDto;
 import org.example.admin.service.GroupService;
@@ -76,6 +77,24 @@ public class GroupServiceimpl extends ServiceImpl<GroupMapper, GroupDo>implement
         GroupDo groupDo = new GroupDo();
         groupDo.setDelFlag(1);
         baseMapper.update(groupDo,wrapper);
+    }
+
+    /**
+     *设置分组排序
+     */
+    @Override
+    public void sortgroup(List<GroupSortReqDTO> groupSortReqDTOList) {
+        for (GroupSortReqDTO groupSortReqDTO : groupSortReqDTOList) {
+            GroupDo groupDo = GroupDo.builder()
+                    .sortOrder(groupSortReqDTO.getSortOrder())
+                    .gid(groupSortReqDTO.getGid())
+                    .build();
+            LambdaUpdateWrapper<GroupDo> wrapper = Wrappers.lambdaUpdate(GroupDo.class)
+                    .eq(GroupDo::getGid, groupDo.getGid())
+                    .eq(GroupDo::getDelFlag, 0)
+                    .eq(GroupDo::getUsername,UserContext.getUsername());
+            baseMapper.update(groupDo,wrapper);
+        }
     }
 
     /**

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.admin.common.convention.result.Result;
 import org.example.admin.common.convention.result.Results;
 import org.example.admin.dto.req.GroupSaverReqDTO;
+import org.example.admin.dto.req.GroupSortReqDTO;
 import org.example.admin.dto.req.GroupUpdateReqDTO;
 import org.example.admin.dto.res.GroupResDto;
 import org.example.admin.service.GroupService;
@@ -48,5 +49,13 @@ public class GroupController {
     public Result<Void> deletegroup(@RequestParam String gid){
         groupService.deletegroup(gid);
        return Results.success();
+    }
+    /**
+     * 设置分组排序
+     */
+    @PostMapping("/api/short-link/admin/v1/group/sort")
+    public Result<Void>sortgroup(@RequestBody List<GroupSortReqDTO> groupSortReqDTOList) {
+        groupService.sortgroup(groupSortReqDTOList);
+        return Results.success();
     }
 }
