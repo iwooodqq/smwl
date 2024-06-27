@@ -1,14 +1,22 @@
 package org.example.admin.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
+import org.example.admin.common.biz.user.UserContext;
 import org.example.admin.dao.entity.GroupDo;
+import org.example.admin.dao.entity.UserDo;
 import org.example.admin.dao.mapper.GroupMapper;
+import org.example.admin.dto.req.GroupUpdateReqDTO;
+import org.example.admin.dto.res.GroupResDto;
 import org.example.admin.service.GroupService;
 import org.example.admin.util.RandomStringGenerator;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -25,16 +33,44 @@ public class GroupServiceimpl extends ServiceImpl<GroupMapper, GroupDo>implement
         } while (!hasgid(random));
         GroupDo groupDo = GroupDo.builder()
                 .name(group)
+                .username(UserContext.getUsername())
                 .gid(random)
+                .sortOrder(0)
                 .build();
         baseMapper.insert(groupDo);
     }
+    /**
+     * 查询分组排序
+     */
+    @Override
+    public List<GroupResDto> sort() {
+        LambdaQueryWrapper<GroupDo> wrapper = Wrappers.lambdaQuery(GroupDo.class).
+                eq(GroupDo::getUsername, UserContext.getUsername())
+                .eq(GroupDo::getDelFlag, 0)
+                .orderByDesc(GroupDo::getSortOrder, GroupDo::getUpdateTime);
+        List<GroupDo> groupDos = baseMapper.selectList(wrapper);
+        List<GroupResDto> resDtoList = BeanUtil.copyToList(groupDos, GroupResDto.class);
+        return resDtoList;
+    }
+
+    /**
+     * 修改分组名称
+     */
+    @Override
+    public void updategroup(GroupUpdateReqDTO groupUpdateReqDTO) {
+        LambdaUpdateWrapper<GroupDo> wrapper = Wrappers.lambdaUpdate(GroupDo.class)
+                .eq(GroupDo::getUsername, UserContext.getUsername())
+                .eq(GroupDo::getGid, groupUpdateReqDTO.getGid())
+                .eq(GroupDo::getDelFlag, 0);
+        GroupDo groupDo = new GroupDo();
+        groupDo.setName(groupUpdateReqDTO.getName());
+        baseMapper.update(groupDo,wrapper);
+    }
+
     private Boolean hasgid(String random){
         LambdaQueryWrapper<GroupDo> wrapper = Wrappers.lambdaQuery(GroupDo.class)
                 .eq(GroupDo::getId, random)
-                //TODO设置用户名
-                .eq(GroupDo::getUsername, null);
-        //检查分组是否存在
+                .eq(GroupDo::getUsername, UserContext.getUsername());
         GroupDo one = baseMapper.selectOne(wrapper);
         return one==null;
     }

@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.example.admin.common.convention.result.Result;
 import org.example.admin.common.convention.result.Results;
 import org.example.admin.dto.req.GroupSaverReqDTO;
+import org.example.admin.dto.req.GroupUpdateReqDTO;
+import org.example.admin.dto.res.GroupResDto;
 import org.example.admin.service.GroupService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +22,23 @@ public class GroupController {
     @PostMapping("/api/short-link/admin/v1/group")
     public Result<Void> saveGroup(@RequestBody GroupSaverReqDTO groupSaverReqDTO) {
         groupService.savegroup(groupSaverReqDTO.getName());
+        return Results.success();
+    }
+    /**
+     * 查询分组排序
+     */
+    @GetMapping("/api/short-link/admin/v1/group")
+    public Result<List<GroupResDto>> sortgroup() {
+        List<GroupResDto> resDtoList=groupService.sort();
+        return Results.success(resDtoList);
+
+    }
+    /**
+     * 修改分组名称
+     */
+    @PutMapping("/api/short-link/admin/v1/group")
+    public Result<Void> updateGroup(@RequestBody GroupUpdateReqDTO groupUpdateReqDTO) {
+        groupService.updategroup(groupUpdateReqDTO);
         return Results.success();
     }
 }

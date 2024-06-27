@@ -111,10 +111,10 @@ public class UserServiceimpl extends ServiceImpl<UserMapper, UserDo> implements 
         if (Boolean.TRUE.equals(hasKey)){
             throw new ClientException("用户已登录");
         }
-        String uuid = UUID.randomUUID().toString();
-        stringRedisTemplate.opsForHash().put("login_"+userLoginReqDTO.getUsername(),"token",JSON.toJSONString(userDo));
+        String token = UUID.randomUUID().toString();
+        stringRedisTemplate.opsForHash().put("login_"+userLoginReqDTO.getUsername(),token,JSON.toJSONString(userDo));
         stringRedisTemplate.expire("login_"+userLoginReqDTO.getUsername(),30,TimeUnit.MINUTES);
-        return new UserLoginResDto(uuid);
+        return new UserLoginResDto(token);
     }
     /**
      * 检查用户登录
