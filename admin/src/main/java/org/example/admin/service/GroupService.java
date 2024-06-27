@@ -13,4 +13,8 @@ public interface GroupService extends IService<GroupDo> {
     List<GroupResDto> sort();
 
     void updategroup(GroupUpdateReqDTO groupUpdateReqDTO);
+
+
+    void deletegroup(String gid);
+
 }

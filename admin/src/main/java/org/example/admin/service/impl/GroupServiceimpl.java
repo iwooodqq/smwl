@@ -67,6 +67,22 @@ public class GroupServiceimpl extends ServiceImpl<GroupMapper, GroupDo>implement
         baseMapper.update(groupDo,wrapper);
     }
 
+    @Override
+    public void deletegroup(String gid) {
+        LambdaUpdateWrapper<GroupDo> wrapper = Wrappers.lambdaUpdate(GroupDo.class)
+                .eq(GroupDo::getUsername, UserContext.getUsername())
+                .eq(GroupDo::getGid,gid)
+                .eq(GroupDo::getDelFlag, 0);
+        GroupDo groupDo = new GroupDo();
+        groupDo.setDelFlag(1);
+        baseMapper.update(groupDo,wrapper);
+    }
+
+    /**
+     * 删除分组
+     */
+
+
     private Boolean hasgid(String random){
         LambdaQueryWrapper<GroupDo> wrapper = Wrappers.lambdaQuery(GroupDo.class)
                 .eq(GroupDo::getId, random)
