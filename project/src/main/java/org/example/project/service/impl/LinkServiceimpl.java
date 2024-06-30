@@ -2,15 +2,19 @@ package org.example.project.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.project.common.convention.exception.ServiceException;
+import org.example.project.common.convention.result.Result;
 import org.example.project.dao.entity.LinkDO;
 import org.example.project.dao.mapper.LinkMapper;
 import org.example.project.dto.req.ShortLinkCreateDTO;
+import org.example.project.dto.req.ShortLinkPagereqDTO;
 import org.example.project.dto.res.ShortLinkCreateResDTO;
+import org.example.project.dto.res.ShortLinkPageresDTO;
 import org.example.project.service.LinkService;
 import org.example.project.toolkit.HashUtil;
 import org.redisson.api.RBloomFilter;
@@ -52,6 +56,19 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                 .originUri(shortLinkCreateDTO.getOriginUrl())
                 .gid(shortLinkCreateDTO.getGid())
                 .build();
+    }
+    /**
+     * 短链接分页
+     */
+    @Override
+    public IPage<ShortLinkPageresDTO>pagelink(ShortLinkPagereqDTO shortLinkPagereqDTO) {
+        LambdaQueryWrapper<LinkDO> queryWrapper = Wrappers.lambdaQuery(LinkDO.class)
+                .eq(LinkDO::getGid, shortLinkPagereqDTO.getGid())
+                .eq(LinkDO::getDelFlag, 0)
+                .eq(LinkDO::getEnableStatus, 0);
+        ShortLinkPagereqDTO shortLinkPagereqDTO1 = baseMapper.selectPage(shortLinkPagereqDTO, queryWrapper);
+        return shortLinkPagereqDTO1.convert(each->BeanUtil.toBean(each,ShortLinkPageresDTO.class));
+
     }
 
     /**

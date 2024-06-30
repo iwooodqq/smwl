@@ -1,20 +1,15 @@
-package org.example.project.dao.entity;
+package org.example.project.dto.res;
+
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Builder;
 import lombok.Data;
-import org.example.project.common.database.BaseDo;
 
 import java.util.Date;
 @Data
-@TableName("t_link")
-@Builder
-public class LinkDO extends BaseDo {
+public class ShortLinkPageresDTO {
     /**
      * id
      */
     private Long id;
-
     /**
      * 域名
      */
@@ -24,36 +19,18 @@ public class LinkDO extends BaseDo {
      * 短链接
      */
     private String shortUri;
-
     /**
      * 完整短链接
      */
     private String fullShortUrl;
-
     /**
      * 原始链接
      */
     private String originUrl;
-
-    /**
-     * 点击量
-     */
-    private Integer clickNum;
-
     /**
      * 分组标识
      */
     private String gid;
-
-    /**
-     * 启用标识 0：未启用 1：已启用
-     */
-    private Integer enableStatus;
-
-    /**
-     * 创建类型 0：控制台 1：接口
-     */
-    private Integer createdType;
 
     /**
      * 有效期类型 0：永久有效 1：用户自定义
@@ -68,7 +45,6 @@ public class LinkDO extends BaseDo {
     /**
      * 描述
      */
-    @TableField("`describe`")
     private String describe;
     /**
      * 网站标识
