@@ -71,9 +71,14 @@ public class UserServiceimpl extends ServiceImpl<UserMapper, UserDo> implements 
         RLock lock = redissonClient.getLock(LOCK_USER_SAVE_KEY + userRegisterReqDTO.getUsername());
         try {
             if (lock.tryLock()){
-                int insert = baseMapper.insert(userDo);
-                if(insert<1){
-                    throw new ClientException(USER_SAVE_ERROR);
+                try {
+                    int insert = baseMapper.insert(userDo);
+                    if(insert<1){
+                        throw new ClientException(USER_SAVE_ERROR);
+                    }
+                }
+                catch (Exception e){
+                    throw new ClientException(USER_EXIST);
                 }
                 userRegisterCachePenetrationBloomFilter.add(userRegisterReqDTO.getUsername());
                 return;

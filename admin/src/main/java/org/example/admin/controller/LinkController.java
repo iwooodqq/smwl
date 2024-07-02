@@ -1,10 +1,9 @@
 package org.example.admin.controller;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.example.admin.common.convention.result.Result;
 import org.example.admin.common.convention.result.Results;
-import org.example.admin.remote.dto.LinkRemoteService;
+import org.example.admin.remote.LinkRemoteService;
 import org.example.admin.remote.dto.req.ShortLinkCreateDTO;
 import org.example.admin.remote.dto.req.ShortLinkPagereqDTO;
 import org.example.admin.remote.dto.res.ShortLinkCreateResDTO;

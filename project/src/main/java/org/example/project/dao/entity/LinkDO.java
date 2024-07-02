@@ -1,14 +1,18 @@
 package org.example.project.dao.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.example.project.common.database.BaseDo;
 
 import java.util.Date;
 @Data
 @TableName("t_link")
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class LinkDO extends BaseDo {
     /**
      * id

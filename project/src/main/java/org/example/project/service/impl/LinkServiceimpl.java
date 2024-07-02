@@ -2,6 +2,7 @@ package org.example.project.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -13,6 +14,7 @@ import org.example.project.dao.entity.LinkDO;
 import org.example.project.dao.mapper.LinkMapper;
 import org.example.project.dto.req.ShortLinkCreateDTO;
 import org.example.project.dto.req.ShortLinkPagereqDTO;
+import org.example.project.dto.res.ShortLinkCountQueryResDTO;
 import org.example.project.dto.res.ShortLinkCreateResDTO;
 import org.example.project.dto.res.ShortLinkPageresDTO;
 import org.example.project.service.LinkService;
@@ -20,6 +22,9 @@ import org.example.project.toolkit.HashUtil;
 import org.redisson.api.RBloomFilter;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @Service
@@ -69,6 +74,19 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         ShortLinkPagereqDTO shortLinkPagereqDTO1 = baseMapper.selectPage(shortLinkPagereqDTO, queryWrapper);
         return shortLinkPagereqDTO1.convert(each->BeanUtil.toBean(each,ShortLinkPageresDTO.class));
 
+    }
+    /**
+     * 短链接分组内数量
+     */
+    @Override
+    public List<ShortLinkCountQueryResDTO> listShortLinkCountQueryResDTO(List<String> requestParam) {
+        QueryWrapper<LinkDO> queryWrapper = Wrappers.query(new LinkDO())
+                .select("gid as gid,count(*) as  LinkCount")
+                .in("gid", requestParam)
+                .eq("enable_Status", 0)
+                .groupBy("gid");
+        List<Map<String, Object>> maps = baseMapper.selectMaps(queryWrapper);
+        return BeanUtil.copyToList(maps,ShortLinkCountQueryResDTO.class);
     }
 
     /**

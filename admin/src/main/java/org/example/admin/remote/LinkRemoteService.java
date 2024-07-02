@@ -1,4 +1,4 @@
-package org.example.admin.remote.dto;
+package org.example.admin.remote;
 
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSON;

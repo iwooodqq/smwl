@@ -19,4 +19,8 @@ public class GroupResDto {
      * 分组排序
      */
     private Integer sortOrder;
+    /**
+     * 数量
+     */
+    private Integer LinkCount;
 }
