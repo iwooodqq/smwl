@@ -32,7 +32,6 @@ public class GroupController {
     public Result<List<GroupResDto>> sortgroup() {
         List<GroupResDto> resDtoList=groupService.sort();
         return Results.success(resDtoList);
-
     }
     /**
      * 修改分组名称

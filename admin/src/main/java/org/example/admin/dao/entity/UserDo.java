@@ -4,11 +4,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import org.example.admin.database.BaseDo;
 import java.io.Serializable;
-/**
- * @description t_user
- * @author zhengkai.blog.csdn.net
- * @date 2024-06-23
- */
 @TableName("t_user")
 @Data
 public class UserDo extends BaseDo implements Serializable {

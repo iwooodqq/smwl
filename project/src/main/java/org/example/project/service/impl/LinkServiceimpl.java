@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.project.common.convention.exception.ServiceException;
-import org.example.project.common.convention.result.Result;
 import org.example.project.dao.entity.LinkDO;
 import org.example.project.dao.mapper.LinkMapper;
 import org.example.project.dto.req.ShortLinkCreateDTO;

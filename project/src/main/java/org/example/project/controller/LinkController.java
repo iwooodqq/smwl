@@ -40,6 +40,7 @@ public class LinkController {
      */
     @GetMapping("/api/short-link/v1/count")
     public Result<List<ShortLinkCountQueryResDTO>>listShortLinkCountQueryResDTO(@RequestParam("requestParam") List<String>requestParam){
-        return Results.success(linkService.listShortLinkCountQueryResDTO(requestParam));
+        List<ShortLinkCountQueryResDTO> shortLinkCountQueryResDTOS = linkService.listShortLinkCountQueryResDTO(requestParam);
+        return Results.success(shortLinkCountQueryResDTOS);
     }
 }

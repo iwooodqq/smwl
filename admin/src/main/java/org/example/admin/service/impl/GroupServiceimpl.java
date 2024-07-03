@@ -3,21 +3,26 @@ package org.example.admin.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import org.example.admin.common.biz.user.UserContext;
+import org.example.admin.common.convention.result.Result;
 import org.example.admin.dao.entity.GroupDo;
-import org.example.admin.dao.entity.UserDo;
 import org.example.admin.dao.mapper.GroupMapper;
 import org.example.admin.dto.req.GroupSortReqDTO;
 import org.example.admin.dto.req.GroupUpdateReqDTO;
 import org.example.admin.dto.res.GroupResDto;
+import org.example.admin.remote.LinkRemoteService;
+import org.example.admin.remote.dto.res.ShortLinkCountQueryResDTO;
 import org.example.admin.service.GroupService;
 import org.example.admin.util.RandomStringGenerator;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @AllArgsConstructor
 @Service
@@ -50,7 +55,14 @@ public class GroupServiceimpl extends ServiceImpl<GroupMapper, GroupDo>implement
                 .eq(GroupDo::getDelFlag, 0)
                 .orderByDesc(GroupDo::getSortOrder, GroupDo::getUpdateTime);
         List<GroupDo> groupDos = baseMapper.selectList(wrapper);
+        Result<List<ShortLinkCountQueryResDTO>> pageResult = LinkRemoteService.
+                listShortLinkCountQueryResDTO(groupDos.stream().map(GroupDo::getGid).toList());
         List<GroupResDto> resDtoList = BeanUtil.copyToList(groupDos, GroupResDto.class);
+        for (GroupResDto resDto : resDtoList) {
+            String gid = resDto.getGid();
+            Optional<ShortLinkCountQueryResDTO> first = pageResult.getData().stream().filter(item -> Objects.equals(item.getGid(), gid)).findFirst();
+            first.ifPresent(item ->resDto.setLinkCount(first.get().getLinkCount()));
+        }
         return resDtoList;
     }
 
