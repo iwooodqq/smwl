@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface GroupService extends IService<GroupDo> {
     void savegroup(String group);
-
+    void savegroup(String username,String group);
     List<GroupResDto> sort();
 
     void updategroup(GroupUpdateReqDTO groupUpdateReqDTO);

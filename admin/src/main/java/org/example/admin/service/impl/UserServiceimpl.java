@@ -16,6 +16,7 @@ import org.example.admin.dto.req.UserRegisterReqDTO;
 import org.example.admin.dto.req.UserUpdateReqDTO;
 import org.example.admin.dto.res.UserLoginResDto;
 import org.example.admin.dto.res.UserResDto;
+import org.example.admin.service.GroupService;
 import org.example.admin.service.UserService;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
@@ -36,6 +37,7 @@ public class UserServiceimpl extends ServiceImpl<UserMapper, UserDo> implements 
     private final RBloomFilter<String> userRegisterCachePenetrationBloomFilter;
     private final RedissonClient redissonClient;
     private final StringRedisTemplate stringRedisTemplate;
+    private final GroupService groupService;
     /**
      * 根据用户名返回用户
      */
@@ -81,6 +83,7 @@ public class UserServiceimpl extends ServiceImpl<UserMapper, UserDo> implements 
                     throw new ClientException(USER_EXIST);
                 }
                 userRegisterCachePenetrationBloomFilter.add(userRegisterReqDTO.getUsername());
+                groupService.savegroup(userRegisterReqDTO.getUsername(),"默认分组");
                 return;
             }
             throw new ClientException(USER_EXIST);

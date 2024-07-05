@@ -33,18 +33,24 @@ public class GroupServiceimpl extends ServiceImpl<GroupMapper, GroupDo>implement
      */
     @Override
     public void savegroup(String group) {
+     savegroup(UserContext.getUsername(),group);
+    }
+
+    @Override
+    public void savegroup(String username, String group) {
         String random;
         do {
             random = RandomStringGenerator.generateRandom();
-        } while (!hasgid(random));
+        } while (!hasgid(username,random));
         GroupDo groupDo = GroupDo.builder()
                 .name(group)
-                .username(UserContext.getUsername())
+                .username(username)
                 .gid(random)
                 .sortOrder(0)
                 .build();
         baseMapper.insert(groupDo);
     }
+
     /**
      * 查询分组排序
      */
@@ -114,10 +120,10 @@ public class GroupServiceimpl extends ServiceImpl<GroupMapper, GroupDo>implement
      */
 
 
-    private Boolean hasgid(String random){
+    private Boolean hasgid(String username,String random){
         LambdaQueryWrapper<GroupDo> wrapper = Wrappers.lambdaQuery(GroupDo.class)
                 .eq(GroupDo::getId, random)
-                .eq(GroupDo::getUsername, UserContext.getUsername());
+                .eq(GroupDo::getUsername, Optional.ofNullable(username).orElse(UserContext.getUsername()));
         GroupDo one = baseMapper.selectOne(wrapper);
         return one==null;
     }
