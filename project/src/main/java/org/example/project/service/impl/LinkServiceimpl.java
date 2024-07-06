@@ -7,13 +7,18 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.project.common.convention.exception.ClientException;
 import org.example.project.common.convention.exception.ServiceException;
 import org.example.project.common.enums.VailDateTypeEnum;
 import org.example.project.dao.entity.LinkDO;
+import org.example.project.dao.entity.LinkGotoDO;
 import org.example.project.dao.mapper.LinkMapper;
+import org.example.project.dao.mapper.ShortLinkGotoMapper;
 import org.example.project.dto.req.ShortLinkCreateDTO;
 import org.example.project.dto.req.ShortLinkPagereqDTO;
 import org.example.project.dto.req.ShortLinkUpdateDTO;
@@ -27,6 +32,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,6 +42,7 @@ import java.util.Objects;
 @Slf4j
 public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements LinkService{
     private final RBloomFilter<String> rBloomFilter;
+    private final ShortLinkGotoMapper shortLinkGotoMapper;
 
     /**
      * 创建短链接
@@ -48,8 +55,13 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         linkDO.setFullShortUrl(fullShortUrl);
         linkDO.setShortUri(generateSuffix);
         linkDO.setEnableStatus(0);
+        LinkGotoDO linkGotoDO = LinkGotoDO.builder()
+                .fullShortUrl(fullShortUrl)
+                .gid(shortLinkCreateDTO.getGid())
+                .build();
         try {
             baseMapper.insert(linkDO);
+            shortLinkGotoMapper.insert(linkGotoDO);
         }
         catch (DuplicateKeyException e) {
             LambdaQueryWrapper<LinkDO> queryWrapper = Wrappers.lambdaQuery(LinkDO.class)
@@ -62,7 +74,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         }
         rBloomFilter.add(fullShortUrl);
         return  ShortLinkCreateResDTO.builder()
-                .fullShortUri(linkDO.getFullShortUrl())
+                .fullShortUri("http://"+linkDO.getFullShortUrl())
                 .originUri(shortLinkCreateDTO.getOriginUrl())
                 .gid(shortLinkCreateDTO.getGid())
                 .build();
@@ -77,7 +89,11 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                 .eq(LinkDO::getDelFlag, 0)
                 .eq(LinkDO::getEnableStatus, 0);
         ShortLinkPagereqDTO shortLinkPagereqDTO1 = baseMapper.selectPage(shortLinkPagereqDTO, queryWrapper);
-        return shortLinkPagereqDTO1.convert(each->BeanUtil.toBean(each,ShortLinkPageresDTO.class));
+        return shortLinkPagereqDTO1.convert(each->{
+            ShortLinkPageresDTO bean = BeanUtil.toBean(each, ShortLinkPageresDTO.class);
+            bean.setDomain("http://"+bean.getDomain());
+            return bean;
+        });
 
     }
     /**
@@ -140,6 +156,29 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
             baseMapper.insert(linkDO);
         }
     }
+    /**
+     * 跳转短链接
+     */
+    @Override
+    public void restoreUrl(String shortUri, ServletRequest request, ServletResponse response) throws IOException {
+        String serverName = request.getServerName();
+        String fullShortUri = serverName + "/" + shortUri;
+        LambdaQueryWrapper<LinkGotoDO> linkGotoDOLambdaQueryWrapper = Wrappers.lambdaQuery(LinkGotoDO.class)
+                .eq(LinkGotoDO::getFullShortUrl, fullShortUri);
+        LinkGotoDO linkGotoDO = shortLinkGotoMapper.selectOne(linkGotoDOLambdaQueryWrapper);
+        if (linkGotoDO == null) {
+            return;
+        }
+        LambdaQueryWrapper<LinkDO> queryWrapper = Wrappers.lambdaQuery(LinkDO.class)
+                .eq(LinkDO::getGid, linkGotoDO.getGid())
+                .eq(LinkDO::getDelFlag, 0)
+                .eq(LinkDO::getEnableStatus, 0)
+                .eq(LinkDO::getFullShortUrl, fullShortUri);
+        LinkDO linkDO = baseMapper.selectOne(queryWrapper);
+        if (linkDO != null) {
+            ((HttpServletResponse)response).sendRedirect(linkDO.getOriginUrl());
+        }
+    }
 
     /**
      * 生成短链接方法
@@ -154,7 +193,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
             String originUrl = shortLinkCreateDTO.getOriginUrl();
             originUrl+=System.currentTimeMillis();
             originUri = HashUtil.hashToBase62(originUrl);
-            if (!rBloomFilter.contains(shortLinkCreateDTO.getDomain()+"/"+originUri)){
+            if (!rBloomFilter.contains("http://"+"/"+originUri)){
                 break;
             }
             GenerateCount++;
