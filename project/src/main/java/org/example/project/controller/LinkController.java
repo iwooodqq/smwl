@@ -6,6 +6,7 @@ import org.example.project.common.convention.result.Result;
 import org.example.project.common.convention.result.Results;
 import org.example.project.dto.req.ShortLinkCreateDTO;
 import org.example.project.dto.req.ShortLinkPagereqDTO;
+import org.example.project.dto.req.ShortLinkUpdateDTO;
 import org.example.project.dto.res.ShortLinkCountQueryResDTO;
 import org.example.project.dto.res.ShortLinkCreateResDTO;
 import org.example.project.dto.res.ShortLinkPageresDTO;
@@ -42,5 +43,14 @@ public class LinkController {
     public Result<List<ShortLinkCountQueryResDTO>>listShortLinkCountQueryResDTO(@RequestParam("requestParam") List<String>requestParam){
         List<ShortLinkCountQueryResDTO> shortLinkCountQueryResDTOS = linkService.listShortLinkCountQueryResDTO(requestParam);
         return Results.success(shortLinkCountQueryResDTOS);
+    }
+
+    /**
+     *短链接修改
+     */
+    @PostMapping("/api/short-link/admin/v1/update")
+    public Result<Void> updateShortLink(@RequestBody ShortLinkUpdateDTO shortLinkUpdateDTO){
+        linkService.updateLink(shortLinkUpdateDTO);
+        return Results.success();
     }
 }

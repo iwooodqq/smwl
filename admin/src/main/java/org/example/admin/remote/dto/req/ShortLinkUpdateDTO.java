@@ -1,20 +1,20 @@
-package org.example.project.dto.req;
+package org.example.admin.remote.dto.req;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.util.Date;
-@Data
-public class ShortLinkCreateDTO {
-    /**
-     * 域名
-     */
-    private String domain;
 
+@Data
+public class ShortLinkUpdateDTO {
     /**
      * 短链接
      */
     private String shortUri;
+    /**
+     * 完整短链接
+     */
+    private String fullShortUrl;
 
     /**
      * 原始链接
@@ -24,13 +24,6 @@ public class ShortLinkCreateDTO {
      * 分组标识
      */
     private String gid;
-
-
-    /**
-     * 创建类型 0：控制台 1：接口
-     */
-    private Integer createdType;
-
     /**
      * 有效期类型 0：永久有效 1：用户自定义
      */
