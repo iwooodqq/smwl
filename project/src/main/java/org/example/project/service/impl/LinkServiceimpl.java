@@ -39,9 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
-import static org.example.project.common.constant.RedisKeyConstant.GOTO_SHORT_LINK_KEY;
-import static org.example.project.common.constant.RedisKeyConstant.LOCK_GOTO_SHORT_LINK_KEY;
+import static org.example.project.common.constant.RedisKeyConstant.*;
+import static org.example.project.toolkit.LinkUtil.getLinkCacheValidTime;
 
 @AllArgsConstructor
 @Service
@@ -79,6 +80,11 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                 throw new ServiceException("短链接生成重复");
             }
         }
+        stringRedisTemplate.opsForValue().set(
+                fullShortUrl,shortLinkCreateDTO.getOriginUrl(),
+                getLinkCacheValidTime(shortLinkCreateDTO.getValidDate()),
+                TimeUnit.MILLISECONDS
+        );
         rBloomFilter.add(fullShortUrl);
         return  ShortLinkCreateResDTO.builder()
                 .fullShortUri("http://"+linkDO.getFullShortUrl())
@@ -176,6 +182,14 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
             ((HttpServletResponse)response).sendRedirect(originalLink);
             return;
         }
+        boolean contains = rBloomFilter.contains(fullShortUri);
+        if (!contains){
+            return;
+        }
+        String gotoIsNullShortLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUri));
+        if (StrUtil.isNotBlank(gotoIsNullShortLink)){
+            return;
+        }
         RLock lock = redissonClient.getLock(String.format(LOCK_GOTO_SHORT_LINK_KEY, fullShortUri));
         lock.lock();
         try {
@@ -188,6 +202,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .eq(LinkGotoDO::getFullShortUrl, fullShortUri);
             LinkGotoDO linkGotoDO = shortLinkGotoMapper.selectOne(linkGotoDOLambdaQueryWrapper);
             if (linkGotoDO == null) {
+                stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUri),"-",30, TimeUnit.MINUTES);
                 return;
             }
             LambdaQueryWrapper<LinkDO> queryWrapper = Wrappers.lambdaQuery(LinkDO.class)
