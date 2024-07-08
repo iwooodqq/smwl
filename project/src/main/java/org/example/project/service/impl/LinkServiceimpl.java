@@ -29,6 +29,9 @@ import org.example.project.dto.res.ShortLinkCreateResDTO;
 import org.example.project.dto.res.ShortLinkPageresDTO;
 import org.example.project.service.LinkService;
 import org.example.project.toolkit.HashUtil;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -36,6 +39,10 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -63,6 +70,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         linkDO.setFullShortUrl(fullShortUrl);
         linkDO.setShortUri(generateSuffix);
         linkDO.setEnableStatus(0);
+        linkDO.setFavicon(getFavicon(shortLinkCreateDTO.getOriginUrl()));
         LinkGotoDO linkGotoDO = LinkGotoDO.builder()
                 .fullShortUrl(fullShortUrl)
                 .gid(shortLinkCreateDTO.getGid())
@@ -81,7 +89,8 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
             }
         }
         stringRedisTemplate.opsForValue().set(
-                fullShortUrl,shortLinkCreateDTO.getOriginUrl(),
+                String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),
+                shortLinkCreateDTO.getOriginUrl(),
                 getLinkCacheValidTime(shortLinkCreateDTO.getValidDate()),
                 TimeUnit.MILLISECONDS
         );
@@ -184,10 +193,12 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         }
         boolean contains = rBloomFilter.contains(fullShortUri);
         if (!contains){
+            ((HttpServletResponse)response).sendRedirect("/page/notfound");
             return;
         }
         String gotoIsNullShortLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUri));
         if (StrUtil.isNotBlank(gotoIsNullShortLink)){
+            ((HttpServletResponse)response).sendRedirect("/page/notfound");
             return;
         }
         RLock lock = redissonClient.getLock(String.format(LOCK_GOTO_SHORT_LINK_KEY, fullShortUri));
@@ -203,6 +214,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
             LinkGotoDO linkGotoDO = shortLinkGotoMapper.selectOne(linkGotoDOLambdaQueryWrapper);
             if (linkGotoDO == null) {
                 stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUri),"-",30, TimeUnit.MINUTES);
+                ((HttpServletResponse)response).sendRedirect("/page/notfound");
                 return;
             }
             LambdaQueryWrapper<LinkDO> queryWrapper = Wrappers.lambdaQuery(LinkDO.class)
@@ -212,7 +224,17 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .eq(LinkDO::getFullShortUrl, fullShortUri);
             LinkDO linkDO = baseMapper.selectOne(queryWrapper);
             if (linkDO != null) {
-                stringRedisTemplate.opsForValue().set(String.format(GOTO_SHORT_LINK_KEY, fullShortUri),linkDO.getOriginUrl());
+                if (linkDO.getValidDate()!=null&&linkDO.getValidDate().before(new Date())){
+                    stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUri),"-",30, TimeUnit.MINUTES);
+                    ((HttpServletResponse)response).sendRedirect("/page/notfound");
+                    return;
+                }
+                stringRedisTemplate.opsForValue().set(
+                        String.format(GOTO_SHORT_LINK_KEY, fullShortUri),
+                        linkDO.getOriginUrl(),
+                        getLinkCacheValidTime(linkDO.getValidDate()),
+                        TimeUnit.MILLISECONDS
+                );
                 ((HttpServletResponse)response).sendRedirect(linkDO.getOriginUrl());
             }
         }finally {
@@ -239,5 +261,46 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
             GenerateCount++;
         }
         return originUri;
+    }
+    /**
+     * 获取网站图标
+     */
+    @SneakyThrows
+    private String getFavicon(String url) {
+        //创建URL对象
+        URL targetUrl = new URL(url);
+        //打开连接
+        HttpURLConnection connection = (HttpURLConnection) targetUrl.openConnection();
+        // 禁止自动处理重定向
+        connection.setInstanceFollowRedirects(false);
+        // 设置请求方法为GET
+        connection.setRequestMethod("GET");
+        //连接
+        connection.connect();
+        //获取响应码
+        int responseCode = connection.getResponseCode();
+        // 如果是重定向响应码
+        if (responseCode == HttpURLConnection.HTTP_MOVED_PERM || responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
+            //获取重定向的URL
+            String redirectUrl = connection.getHeaderField("Location");
+            //如果重定向URL不为空
+            if (redirectUrl != null) {
+                // 创建新的URL对象
+                URL newUrl = new URL(redirectUrl);//打开新的连接
+                connection = (HttpURLConnection) newUrl.openConnection();//设置请求方法为GET
+                connection.setRequestMethod("GET");//连接
+                connection.connect();//获取新的响应码
+                responseCode = connection.getResponseCode();
+            }
+        }
+        // 如果响应码为200(HTTP_OK)
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            Document document = Jsoup.connect(url).get();
+            Element faviconLink = document.select("link[rel~=(?i)^(shortcut)?icon]").first();
+            if (faviconLink!=null){
+                return faviconLink.attr("abs:href");
+            }
+        }
+        return null;
     }
 }

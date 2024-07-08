@@ -13,10 +13,15 @@ import org.example.admin.remote.dto.req.ShortLinkUpdateDTO;
 import org.example.admin.remote.dto.res.ShortLinkCountQueryResDTO;
 import org.example.admin.remote.dto.res.ShortLinkCreateResDTO;
 import org.example.admin.remote.dto.res.ShortLinkPageresDTO;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
@@ -54,5 +59,12 @@ public interface LinkRemoteService {
      */
     static void updateLink(ShortLinkUpdateDTO shortLinkUpdateDTO) {
         HttpUtil.post("http://127.0.0.1:8001/api/short-link/admin/v1/update",JSON.toJSONString(shortLinkUpdateDTO));
+    }
+    /**
+     * 获取网页标题
+     */
+    static Result<String>getTitleByUrl(@RequestParam("url")String url){
+        String result = HttpUtil.get("/api/short-link/v1/title?url=" + url);
+        return JSON.parseObject(result,new TypeReference<>(){});
     }
 }

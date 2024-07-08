@@ -9,6 +9,8 @@ import static org.example.project.common.constant.ShortLinkConstant.DEFAULT_CREA
 
 public class LinkUtil {
     public static long getLinkCacheValidTime(Date validate){
-        return Optional.ofNullable(validate).map(each-> DateUtil.between(new Date(),each, DateUnit.MS)).orElse(DEFAULT_CREATE_VALUE_TIME);
+        return Optional.ofNullable(validate).
+                map(each-> DateUtil.between(new Date(),each, DateUnit.MS)).
+                orElse(DEFAULT_CREATE_VALUE_TIME);
     }
 }
