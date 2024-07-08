@@ -29,6 +29,7 @@ import org.example.project.dto.res.ShortLinkCreateResDTO;
 import org.example.project.dto.res.ShortLinkPageresDTO;
 import org.example.project.service.LinkService;
 import org.example.project.toolkit.HashUtil;
+import org.example.project.toolkit.LinkUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -91,7 +92,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         stringRedisTemplate.opsForValue().set(
                 String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),
                 shortLinkCreateDTO.getOriginUrl(),
-                getLinkCacheValidTime(shortLinkCreateDTO.getValidDate()),
+                LinkUtil.getLinkCacheValidTime(shortLinkCreateDTO.getValidDate()),
                 TimeUnit.MILLISECONDS
         );
         rBloomFilter.add(fullShortUrl);

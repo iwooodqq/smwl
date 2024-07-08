@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.project.common.database.BaseDo;
 import org.example.project.dao.entity.LinkDO;
 import org.example.project.dao.mapper.LinkMapper;
+import org.example.project.dto.req.RecycleBinRecoverReqDTO;
+import org.example.project.dto.req.RecycleBinRemoveReqDTO;
 import org.example.project.dto.req.RecycleBinSaveReqDTO;
 import org.example.project.dto.req.ShortLinkRecycleBinPagereqDTO;
 import org.example.project.dto.res.ShortLinkPageresDTO;
@@ -18,6 +20,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 
+import static org.example.project.common.constant.RedisKeyConstant.GOTO_IS_NULL_SHORT_LINK_KEY;
 import static org.example.project.common.constant.RedisKeyConstant.GOTO_SHORT_LINK_KEY;
 @RequiredArgsConstructor
 @Service
@@ -56,5 +59,35 @@ public class RecycleBinServiceimpl extends ServiceImpl<LinkMapper, LinkDO> imple
             bean.setDomain("http://" + bean.getDomain());
             return bean;
         });
+    }
+
+    /**
+     * 短链接恢复
+     */
+    @Override
+    public void recoverRecycleBin(RecycleBinRecoverReqDTO recycleBinRecoverReqDTO) {
+        LambdaUpdateWrapper<LinkDO> wrapper = Wrappers.lambdaUpdate(LinkDO.class)
+                .eq(LinkDO::getFullShortUrl, recycleBinRecoverReqDTO.getFullShortUrl())
+                .eq(LinkDO::getGid, recycleBinRecoverReqDTO.getGid())
+                .eq(LinkDO::getEnableStatus, 1)
+                .eq(BaseDo::getDelFlag, 0);
+        LinkDO linkDO = LinkDO.builder()
+                .enableStatus(0)
+                .build();
+        baseMapper.update(linkDO,wrapper);
+        stringRedisTemplate.delete(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, recycleBinRecoverReqDTO.getFullShortUrl()));
+    }
+
+    /**
+     * 短链接删除
+     */
+    @Override
+    public void removeRecycleBin(RecycleBinRemoveReqDTO recycleBinRemoveReqDTO) {
+        LambdaUpdateWrapper<LinkDO> wrapper = Wrappers.lambdaUpdate(LinkDO.class)
+                .eq(LinkDO::getFullShortUrl, recycleBinRemoveReqDTO.getFullShortUrl())
+                .eq(LinkDO::getGid, recycleBinRemoveReqDTO.getGid())
+                .eq(LinkDO::getEnableStatus, 1)
+                .eq(BaseDo::getDelFlag, 0);
+        baseMapper.delete(wrapper);
     }
 }

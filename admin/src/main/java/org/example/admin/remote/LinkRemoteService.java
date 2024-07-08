@@ -6,10 +6,7 @@ import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.example.admin.common.convention.result.Result;
 import org.example.admin.dto.req.RecycleBinSaveReqDTO;
-import org.example.admin.remote.dto.req.ShortLinkCreateDTO;
-import org.example.admin.remote.dto.req.ShortLinkPagereqDTO;
-import org.example.admin.remote.dto.req.ShortLinkRecycleBinPagereqDTO;
-import org.example.admin.remote.dto.req.ShortLinkUpdateDTO;
+import org.example.admin.remote.dto.req.*;
 import org.example.admin.remote.dto.res.ShortLinkCountQueryResDTO;
 import org.example.admin.remote.dto.res.ShortLinkCreateResDTO;
 import org.example.admin.remote.dto.res.ShortLinkPageresDTO;
@@ -77,5 +74,17 @@ public interface LinkRemoteService {
         hashMap.put("size",shortLinkRecycleBinPagereqDTO.getSize());
         String s = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/recycle-bin/page", hashMap);
         return JSON.parseObject(s,new TypeReference<>(){});
+    }
+    /**
+     * 短链接恢复
+     */
+    static void recoverRecycleBin(RecycleBinRecoverReqDTO recycleBinRecoverReqDTO) {
+        HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/recycle-bin/recover",JSON.toJSONString(recycleBinRecoverReqDTO));
+    }
+    /**
+     * 短链接删除
+     */
+    static void removeRecycleBin(RecycleBinRemoveReqDTO recycleBinRemoveReqDTO) {
+        HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/recycle-bin/remove",JSON.toJSONString(recycleBinRemoveReqDTO));
     }
 }
