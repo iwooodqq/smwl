@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.admin.common.convention.result.Result;
+import org.example.admin.dto.req.RecycleBinSaveReqDTO;
 import org.example.admin.remote.dto.req.ShortLinkCreateDTO;
 import org.example.admin.remote.dto.req.ShortLinkPagereqDTO;
 import org.example.admin.remote.dto.req.ShortLinkUpdateDTO;
@@ -18,6 +19,7 @@ import org.jsoup.nodes.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.net.HttpURLConnection;
@@ -66,5 +68,11 @@ public interface LinkRemoteService {
     static Result<String>getTitleByUrl(@RequestParam("url")String url){
         String result = HttpUtil.get("/api/short-link/v1/title?url=" + url);
         return JSON.parseObject(result,new TypeReference<>(){});
+    }
+    /**
+     * 移动至回收站
+     */
+    static void saveRecycleBin( RecycleBinSaveReqDTO recycleBinSaveReqDTO){
+        HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/recycle-bin/save",JSON.toJSONString(recycleBinSaveReqDTO));
     }
 }

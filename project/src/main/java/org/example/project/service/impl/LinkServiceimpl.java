@@ -223,20 +223,18 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .eq(LinkDO::getEnableStatus, 0)
                     .eq(LinkDO::getFullShortUrl, fullShortUri);
             LinkDO linkDO = baseMapper.selectOne(queryWrapper);
-            if (linkDO != null) {
-                if (linkDO.getValidDate()!=null&&linkDO.getValidDate().before(new Date())){
-                    stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUri),"-",30, TimeUnit.MINUTES);
-                    ((HttpServletResponse)response).sendRedirect("/page/notfound");
-                    return;
-                }
-                stringRedisTemplate.opsForValue().set(
-                        String.format(GOTO_SHORT_LINK_KEY, fullShortUri),
-                        linkDO.getOriginUrl(),
-                        getLinkCacheValidTime(linkDO.getValidDate()),
-                        TimeUnit.MILLISECONDS
-                );
-                ((HttpServletResponse)response).sendRedirect(linkDO.getOriginUrl());
+            if (linkDO == null||linkDO.getValidDate().before(new Date())) {
+                stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUri),"-",30, TimeUnit.MINUTES);
+                ((HttpServletResponse)response).sendRedirect("/page/notfound");
+                return;
             }
+            stringRedisTemplate.opsForValue().set(
+                    String.format(GOTO_SHORT_LINK_KEY, fullShortUri),
+                    linkDO.getOriginUrl(),
+                    getLinkCacheValidTime(linkDO.getValidDate()),
+                    TimeUnit.MILLISECONDS
+            );
+            ((HttpServletResponse)response).sendRedirect(linkDO.getOriginUrl());
         }finally {
             lock.unlock();
         }
