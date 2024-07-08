@@ -11,7 +11,7 @@ import org.example.project.common.database.BaseDo;
 import org.example.project.dao.entity.LinkDO;
 import org.example.project.dao.mapper.LinkMapper;
 import org.example.project.dto.req.RecycleBinSaveReqDTO;
-import org.example.project.dto.req.ShortLinkPagereqDTO;
+import org.example.project.dto.req.ShortLinkRecycleBinPagereqDTO;
 import org.example.project.dto.res.ShortLinkPageresDTO;
 import org.example.project.service.RecycleBinService;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -44,13 +44,14 @@ public class RecycleBinServiceimpl extends ServiceImpl<LinkMapper, LinkDO> imple
      * 分页管理
      */
     @Override
-    public IPage<ShortLinkPageresDTO>pagelink(ShortLinkPagereqDTO shortLinkPagereqDTO) {
+    public IPage<ShortLinkPageresDTO>pagelink(ShortLinkRecycleBinPagereqDTO shortLinkPagereqDTO) {
         LambdaQueryWrapper<LinkDO> queryWrapper = Wrappers.lambdaQuery(LinkDO.class)
-                .eq(LinkDO::getGid, shortLinkPagereqDTO.getGid())
+                .in(LinkDO::getGid, shortLinkPagereqDTO.getGidList())
                 .eq(LinkDO::getDelFlag, 0)
-                .eq(LinkDO::getEnableStatus, 1);
-        ShortLinkPagereqDTO shortLinkPagereqDTO1 = baseMapper.selectPage(shortLinkPagereqDTO, queryWrapper);
-        return shortLinkPagereqDTO1.convert(each -> {
+                .eq(LinkDO::getEnableStatus, 1)
+                .orderByDesc(BaseDo::getUpdateTime);
+        ShortLinkRecycleBinPagereqDTO shortLinkRecycleBinPagereqDTO = baseMapper.selectPage(shortLinkPagereqDTO, queryWrapper);
+        return shortLinkRecycleBinPagereqDTO.convert(each -> {
             ShortLinkPageresDTO bean = BeanUtil.toBean(each, ShortLinkPageresDTO.class);
             bean.setDomain("http://" + bean.getDomain());
             return bean;

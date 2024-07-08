@@ -8,6 +8,7 @@ import org.example.admin.common.convention.result.Result;
 import org.example.admin.dto.req.RecycleBinSaveReqDTO;
 import org.example.admin.remote.dto.req.ShortLinkCreateDTO;
 import org.example.admin.remote.dto.req.ShortLinkPagereqDTO;
+import org.example.admin.remote.dto.req.ShortLinkRecycleBinPagereqDTO;
 import org.example.admin.remote.dto.req.ShortLinkUpdateDTO;
 import org.example.admin.remote.dto.res.ShortLinkCountQueryResDTO;
 import org.example.admin.remote.dto.res.ShortLinkCreateResDTO;
@@ -69,11 +70,11 @@ public interface LinkRemoteService {
     /**
      * 回收站短链接分页
      */
-    static Result<IPage<ShortLinkPageresDTO>> pageRecycleBinShortLink(ShortLinkPagereqDTO shortLinkPagereqDTO){
+    static Result<IPage<ShortLinkPageresDTO>> pageRecycleBinShortLink(ShortLinkRecycleBinPagereqDTO shortLinkRecycleBinPagereqDTO){
         HashMap<String, Object> hashMap = new HashMap<>();
-        hashMap.put("gid",shortLinkPagereqDTO.getGid());
-        hashMap.put("current",shortLinkPagereqDTO.getCurrent());
-        hashMap.put("size",shortLinkPagereqDTO.getSize());
+        hashMap.put("gidList",shortLinkRecycleBinPagereqDTO.getGidList());
+        hashMap.put("current",shortLinkRecycleBinPagereqDTO.getCurrent());
+        hashMap.put("size",shortLinkRecycleBinPagereqDTO.getSize());
         String s = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/recycle-bin/page", hashMap);
         return JSON.parseObject(s,new TypeReference<>(){});
     }
