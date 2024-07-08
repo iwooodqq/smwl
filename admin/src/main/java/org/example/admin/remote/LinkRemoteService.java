@@ -66,4 +66,15 @@ public interface LinkRemoteService {
     static void saveRecycleBin( RecycleBinSaveReqDTO recycleBinSaveReqDTO){
         HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/recycle-bin/save",JSON.toJSONString(recycleBinSaveReqDTO));
     }
+    /**
+     * 回收站短链接分页
+     */
+    static Result<IPage<ShortLinkPageresDTO>> pageRecycleBinShortLink(ShortLinkPagereqDTO shortLinkPagereqDTO){
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("gid",shortLinkPagereqDTO.getGid());
+        hashMap.put("current",shortLinkPagereqDTO.getCurrent());
+        hashMap.put("size",shortLinkPagereqDTO.getSize());
+        String s = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/recycle-bin/page", hashMap);
+        return JSON.parseObject(s,new TypeReference<>(){});
+    }
 }
