@@ -1,6 +1,10 @@
 package org.example.project.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.Week;
+import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -10,6 +14,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -17,8 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.project.common.convention.exception.ClientException;
 import org.example.project.common.convention.exception.ServiceException;
 import org.example.project.common.enums.VailDateTypeEnum;
+import org.example.project.dao.entity.LinkAccessStatsDO;
 import org.example.project.dao.entity.LinkDO;
 import org.example.project.dao.entity.LinkGotoDO;
+import org.example.project.dao.mapper.LinkAccessStatsMapper;
 import org.example.project.dao.mapper.LinkMapper;
 import org.example.project.dao.mapper.ShortLinkGotoMapper;
 import org.example.project.dto.req.ShortLinkCreateDTO;
@@ -43,11 +51,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.example.project.common.constant.RedisKeyConstant.*;
 import static org.example.project.toolkit.LinkUtil.getLinkCacheValidTime;
@@ -60,6 +66,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
     private final ShortLinkGotoMapper shortLinkGotoMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final RedissonClient redissonClient;
+    private final LinkAccessStatsMapper linkAccessStatsMapper;
     /**
      * 创建短链接
      */
@@ -189,6 +196,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         String fullShortUri = serverName + "/" + shortUri;
         String originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUri));
         if (StrUtil.isNotBlank(originalLink)){
+            shortLinkStats(fullShortUri,null,request,response);
             ((HttpServletResponse)response).sendRedirect(originalLink);
             return;
         }
@@ -207,6 +215,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         try {
             originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUri));
             if (originalLink!=null){
+                shortLinkStats(fullShortUri,null,request,response);
                 ((HttpServletResponse)response).sendRedirect(originalLink);
                 return;
             }
@@ -235,10 +244,61 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     getLinkCacheValidTime(linkDO.getValidDate()),
                     TimeUnit.MILLISECONDS
             );
+            shortLinkStats(fullShortUri,linkDO.getGid(),request,response);
             ((HttpServletResponse)response).sendRedirect(linkDO.getOriginUrl());
         }finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * 短链接监控方法
+     */
+    private void shortLinkStats(String fullShortUrl,String gid,ServletRequest request, ServletResponse response){
+        AtomicBoolean atomicBoolean = new AtomicBoolean();
+        Cookie[] cookies = ((HttpServletRequest) request).getCookies();
+        Runnable addResponseCookieTask=()->{
+            String uv = UUID.fastUUID().toString();
+            Cookie uvCookie = new Cookie("uv", uv);
+            uvCookie.setMaxAge(60*60*24*30);
+            uvCookie.setPath(StrUtil.sub(fullShortUrl,fullShortUrl.indexOf("/"),fullShortUrl.length()));
+            ((HttpServletResponse)response).addCookie(uvCookie);
+            atomicBoolean.set(Boolean.TRUE);
+            stringRedisTemplate.opsForSet().add("short-link:stats:uv:" + fullShortUrl, uv);
+        };
+        if (ArrayUtil.isNotEmpty(cookies)){
+            Arrays.stream(cookies)
+                    .filter(each->Objects.equals(each.getName(), "uv"))
+                    .findFirst()
+                    .map(Cookie::getValue)
+                    .ifPresentOrElse(each->{
+                        Long add = stringRedisTemplate.opsForSet().add("short-link:stats:uv:" + fullShortUrl, each);
+                        atomicBoolean.set(add!=null&&add> 0L);
+                    },addResponseCookieTask);
+        }
+        else {
+            addResponseCookieTask.run();
+        }
+        if (StrUtil.isBlank(gid)){
+            LambdaQueryWrapper<LinkGotoDO> wrapper = Wrappers.lambdaQuery(LinkGotoDO.class)
+                    .eq(LinkGotoDO::getFullShortUrl, fullShortUrl);
+            LinkGotoDO linkGotoDO = shortLinkGotoMapper.selectOne(wrapper);
+            gid = linkGotoDO.getGid();
+        }
+        int hour = DateUtil.hour(new Date(), true);
+        Week week = DateUtil.dayOfWeekEnum(new Date());
+        int weekValue = week.getIso8601Value();
+        LinkAccessStatsDO linkAccessStatsDO = LinkAccessStatsDO.builder()
+                .pv(1)
+                .uv(atomicBoolean.get()?1:0)
+                .uip(1)
+                .hour(hour)
+                .weekday(weekValue)
+                .fullShortUrl(fullShortUrl)
+                .gid(gid)
+                .date(new Date())
+                .build();
+        linkAccessStatsMapper.shortLinkStats(linkAccessStatsDO);
     }
 
     /**
