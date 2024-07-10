@@ -26,14 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.project.common.convention.exception.ClientException;
 import org.example.project.common.convention.exception.ServiceException;
 import org.example.project.common.enums.VailDateTypeEnum;
-import org.example.project.dao.entity.LinkAccessStatsDO;
-import org.example.project.dao.entity.LinkDO;
-import org.example.project.dao.entity.LinkGotoDO;
-import org.example.project.dao.entity.LinkLocaleStatsDo;
-import org.example.project.dao.mapper.LinkAccessStatsMapper;
-import org.example.project.dao.mapper.LinkLocaleStatsMapper;
-import org.example.project.dao.mapper.LinkMapper;
-import org.example.project.dao.mapper.ShortLinkGotoMapper;
+import org.example.project.dao.entity.*;
+import org.example.project.dao.mapper.*;
 import org.example.project.dto.req.ShortLinkCreateDTO;
 import org.example.project.dto.req.ShortLinkPagereqDTO;
 import org.example.project.dto.req.ShortLinkUpdateDTO;
@@ -63,8 +57,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.example.project.common.constant.RedisKeyConstant.*;
 import static org.example.project.common.constant.ShortLinkConstant.AMAP_REMOTE_URL;
-import static org.example.project.toolkit.LinkUtil.getIp;
-import static org.example.project.toolkit.LinkUtil.getLinkCacheValidTime;
+import static org.example.project.toolkit.LinkUtil.*;
 
 @RequiredArgsConstructor
 @Service
@@ -76,6 +69,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
     private final RedissonClient redissonClient;
     private final LinkAccessStatsMapper linkAccessStatsMapper;
     private final LinkLocaleStatsMapper linkLocaleStatsMapper;
+    private final LinkOsStatsDoMapper linkOsStatsDoMapper;
 
     @Value("${short-link.stats.locale.amap-key}")
     private String amapkey;
@@ -334,8 +328,15 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .gid(gid)
                     .date(new Date())
                     .build();
-            System.out.println(linkLocaleStatsDo);
             linkLocaleStatsMapper.shortLinkLocaleState(linkLocaleStatsDo);
+            LinkOsStatsDo linkOsStatsDo = LinkOsStatsDo.builder()
+                    .gid(gid)
+                    .os(getOs((HttpServletRequest) request))
+                    .fullShortUrl(fullShortUrl)
+                    .cnt(1)
+                    .date(new Date())
+                    .build();
+            linkOsStatsDoMapper.shortLinkOsState(linkOsStatsDo);
         }
     }
 
