@@ -321,22 +321,22 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         JSONObject jsonObject = JSON.parseObject(localResultStr);
         String infocode = jsonObject.getString("infocode");
         LinkLocaleStatsDo linkLocaleStatsDo;
-        if (StrUtil.isBlank(infocode)&& !Objects.equals(infocode, "10000")){
-            return;
+        if (StrUtil.isNotBlank(infocode)&&StrUtil.equals(infocode,"10000")){
+            String province = jsonObject.getString("province");
+            boolean unknown = StrUtil.equals(province,"[]");
+            linkLocaleStatsDo = LinkLocaleStatsDo.builder()
+                    .fullShortUrl(fullShortUrl)
+                    .province(unknown ?"未知":province)
+                    .city(unknown ?"未知":jsonObject.getString("city"))
+                    .adcode(unknown ?"未知":jsonObject.getString("adcode"))
+                    .cnt(1)
+                    .country("中国")
+                    .gid(gid)
+                    .date(new Date())
+                    .build();
+            System.out.println(linkLocaleStatsDo);
+            linkLocaleStatsMapper.shortLinkLocaleState(linkLocaleStatsDo);
         }
-        String province = jsonObject.getString("province");
-        boolean unknown = StrUtil.equals(province,"[]");
-        linkLocaleStatsDo = LinkLocaleStatsDo.builder()
-                .fullShortUrl(fullShortUrl)
-                .province(unknown ?"未知":province)
-                .city(unknown ?"未知":jsonObject.getString("city"))
-                .adcode(unknown ?"未知":jsonObject.getString("adcode"))
-                .cnt(1)
-                .country("中国")
-                .gid(gid)
-                .date(new Date())
-                .build();
-        linkLocaleStatsMapper.shortLinkLocaleState(linkLocaleStatsDo);
     }
 
     /**
