@@ -70,6 +70,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
     private final LinkAccessStatsMapper linkAccessStatsMapper;
     private final LinkLocaleStatsMapper linkLocaleStatsMapper;
     private final LinkOsStatsDoMapper linkOsStatsDoMapper;
+    private final LinkBrowserStatsMapper linkBrowserStatsMapper;
 
     @Value("${short-link.stats.locale.amap-key}")
     private String amapkey;
@@ -337,6 +338,14 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .date(new Date())
                     .build();
             linkOsStatsDoMapper.shortLinkOsState(linkOsStatsDo);
+            LinkBrowserStatsDo linkBrowserStatsDO = LinkBrowserStatsDo.builder()
+                    .browser(LinkUtil.getBrowser(((HttpServletRequest) request)))
+                    .cnt(1)
+                    .gid(gid)
+                    .fullShortUrl(fullShortUrl)
+                    .date(new Date())
+                    .build();
+            linkBrowserStatsMapper.shortLinkBrowserState(linkBrowserStatsDO);
         }
     }
 
