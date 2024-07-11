@@ -320,14 +320,16 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         String localResultStr = HttpUtil.get(AMAP_REMOTE_URL, map);
         JSONObject jsonObject = JSON.parseObject(localResultStr);
         String infocode = jsonObject.getString("infocode");
+        String actualProvince;
+        String actualCity;
         LinkLocaleStatsDo linkLocaleStatsDo;
         if (StrUtil.isNotBlank(infocode)&&StrUtil.equals(infocode,"10000")){
             String province = jsonObject.getString("province");
             boolean unknown = StrUtil.equals(province,"[]");
             linkLocaleStatsDo = LinkLocaleStatsDo.builder()
                     .fullShortUrl(fullShortUrl)
-                    .province(unknown ?"未知":province)
-                    .city(unknown ?"未知":jsonObject.getString("city"))
+                    .province(actualProvince=unknown ?"未知":province)
+                    .city(actualCity=unknown ?"未知":jsonObject.getString("city"))
                     .adcode(unknown ?"未知":jsonObject.getString("adcode"))
                     .cnt(1)
                     .country("中国")
@@ -353,17 +355,22 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .date(new Date())
                     .build();
             linkBrowserStatsMapper.shortLinkBrowserState(linkBrowserStatsDO);
+            String network = getNetwork(((HttpServletRequest) request));
+            String device = getDevice(((HttpServletRequest) request));
             LinkAccessLogsDO linkAccessLogsDO = LinkAccessLogsDO.builder()
                     .user(uv.get())
                     .ip(remoteAddr)
                     .browser(browser)
                     .os(os)
+                    .device(device)
+                    .network(network)
+                    .locale(StrUtil.join("-","中国",actualProvince,actualCity))
                     .gid(gid)
                     .fullShortUrl(fullShortUrl)
                     .build();
             linkAccessLogsMapper.insert(linkAccessLogsDO);
             LinkDeviceStatsDo linkDeviceStatsDO = LinkDeviceStatsDo.builder()
-                    .device(LinkUtil.getDevice(((HttpServletRequest) request)))
+                    .device(device)
                     .cnt(1)
                     .gid(gid)
                     .fullShortUrl(fullShortUrl)
@@ -371,7 +378,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .build();
             linkDeviceStatsMapper.shortLinkDeviceState(linkDeviceStatsDO);
             LinkNetworkStatsDO linkNetworkStatsDO = LinkNetworkStatsDO.builder()
-                    .network(LinkUtil.getNetwork(((HttpServletRequest) request)))
+                    .network(network)
                     .cnt(1)
                     .gid(gid)
                     .fullShortUrl(fullShortUrl)
