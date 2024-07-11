@@ -1,11 +1,14 @@
 package org.example.admin.remote;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.example.admin.common.convention.result.Result;
 import org.example.admin.dto.req.RecycleBinSaveReqDTO;
+import org.example.admin.dto.req.ShortLinkStatsReqDTO;
+import org.example.admin.dto.res.ShortLinkStatsRespDTO;
 import org.example.admin.remote.dto.req.*;
 import org.example.admin.remote.dto.res.ShortLinkCountQueryResDTO;
 import org.example.admin.remote.dto.res.ShortLinkCreateResDTO;
@@ -86,5 +89,14 @@ public interface LinkRemoteService {
      */
     static void removeRecycleBin(RecycleBinRemoveReqDTO recycleBinRemoveReqDTO) {
         HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/recycle-bin/remove",JSON.toJSONString(recycleBinRemoveReqDTO));
+    }
+
+    /**
+     * 短链接监控详情
+     */
+    static Result<ShortLinkStatsRespDTO> oneShortLinkStats(ShortLinkStatsReqDTO requestParam) {
+        String resultBodyStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats", BeanUtil.beanToMap(requestParam));
+        return JSON.parseObject(resultBodyStr, new TypeReference<>() {
+        });
     }
 }
