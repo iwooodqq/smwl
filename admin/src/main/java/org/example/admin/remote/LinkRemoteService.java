@@ -104,8 +104,6 @@ public interface LinkRemoteService {
 
     /**
      * 短链接监控访问记录数据
-     * @param requestParam
-     * @return
      */
     static Result<IPage<ShortLinkStatsAccessRecordRespDTO>>shortLinkStatsAccessRecord(ShortLinkStatsAccessRecordReqDTO requestParam) {
         Map<String, Object> stringObjectMap = BeanUtil.beanToMap(requestParam, false, true);

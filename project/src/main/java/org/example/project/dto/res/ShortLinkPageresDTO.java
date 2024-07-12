@@ -1,7 +1,6 @@
 package org.example.project.dto.res;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -57,4 +56,34 @@ public class ShortLinkPageresDTO {
      * 网站标识
      */
     private String favicon;
+
+    /**
+     * 历史PV
+     */
+    private Integer totalPv;
+
+    /**
+     * 今日PV
+     */
+    private Integer toDayPv;
+
+    /**
+     * 历史UV
+     */
+    private Integer totalUv;
+
+    /**
+     * 今日UV
+     */
+    private Integer toDayUv;
+
+    /**
+     * 历史UIP
+     */
+    private Integer totalUIp;
+
+    /**
+     * 今日UIP
+     */
+    private Integer toDayUIp;
 }

@@ -87,6 +87,9 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
         LinkDO linkDO = BeanUtil.toBean(shortLinkCreateDTO, LinkDO.class);
         linkDO.setFullShortUrl(fullShortUrl);
         linkDO.setShortUri(generateSuffix);
+        linkDO.setTotalPv(0);
+        linkDO.setTotalUv(0);
+        linkDO.setTotalUip(0);
         linkDO.setEnableStatus(0);
         linkDO.setFavicon(getFavicon(shortLinkCreateDTO.getOriginUrl()));
         LinkGotoDO linkGotoDO = LinkGotoDO.builder()
@@ -385,6 +388,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .date(new Date())
                     .build();
             linkNetWorkStatsMapper.shortLinkNetworkState(linkNetworkStatsDO);
+            baseMapper.incrementStats(gid, fullShortUrl, 1, atomicBoolean.get() ? 1 : 0, uipFirstFlag ? 1 : 0);
         }
     }
 
