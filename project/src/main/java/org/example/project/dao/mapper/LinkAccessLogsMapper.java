@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.example.project.dao.entity.LinkAccessLogsDO;
+import org.example.project.dto.req.ShortLinkStatsAccessRecordReqDTO;
 import org.example.project.dto.req.ShortLinkStatsReqDTO;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public interface LinkAccessLogsMapper extends BaseMapper<LinkAccessLogsDO> {
@@ -49,4 +51,30 @@ public interface LinkAccessLogsMapper extends BaseMapper<LinkAccessLogsDO> {
                 "        user " +
                 ") AS user_counts;")
         HashMap<String, Object> findUvTypeCntByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+
+        @Select("<script> " +
+                "SELECT " +
+                "    user, " +
+                "    CASE " +
+                "        WHEN MIN(create_time) BETWEEN #{startDate} AND #{endDate} THEN '新访客' " +
+                "        ELSE '老访客' " +
+                "    END AS uvType " +
+                "FROM " +
+                "    t_link_access_logs " +
+                "WHERE " +
+                "    gid = #{gid} " +
+                "    AND user IN " +
+                "    <foreach item='item' index='index' collection='userAccessLogsList' open='(' separator=',' close=')'> " +
+                "        #{item} " +
+                "    </foreach> " +
+                "GROUP BY " +
+                "    user;" +
+                "    </script>"
+        )
+        List<Map<String, Object>> selectGroupUvTypeByUsers(
+                @Param("gid") String gid,
+                @Param("startDate") String startDate,
+                @Param("endDate") String endDate,
+                @Param("userAccessLogsList") List<String> userAccessLogsList
+        );
 }

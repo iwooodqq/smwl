@@ -14,10 +14,12 @@ import org.example.admin.remote.dto.res.ShortLinkCountQueryResDTO;
 import org.example.admin.remote.dto.res.ShortLinkCreateResDTO;
 import org.example.admin.remote.dto.res.ShortLinkPageresDTO;
 
+import org.example.admin.remote.dto.res.ShortLinkStatsAccessRecordRespDTO;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface LinkRemoteService {
     /**
@@ -96,6 +98,20 @@ public interface LinkRemoteService {
      */
     static Result<ShortLinkStatsRespDTO> oneShortLinkStats(ShortLinkStatsReqDTO requestParam) {
         String resultBodyStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats", BeanUtil.beanToMap(requestParam));
+        return JSON.parseObject(resultBodyStr, new TypeReference<>() {
+        });
+    }
+
+    /**
+     * 短链接监控访问记录数据
+     * @param requestParam
+     * @return
+     */
+    static Result<IPage<ShortLinkStatsAccessRecordRespDTO>>shortLinkStatsAccessRecord(ShortLinkStatsAccessRecordReqDTO requestParam) {
+        Map<String, Object> stringObjectMap = BeanUtil.beanToMap(requestParam, false, true);
+        stringObjectMap.remove("orders");
+        stringObjectMap.remove("records");
+        String resultBodyStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/access-record", stringObjectMap);
         return JSON.parseObject(resultBodyStr, new TypeReference<>() {
         });
     }
