@@ -3,7 +3,6 @@ package org.example.admin.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import org.example.admin.common.convention.result.Result;
-import org.example.admin.common.convention.result.Results;
 import org.example.admin.dto.req.ShortLinkStatsReqDTO;
 import org.example.admin.dto.res.ShortLinkStatsRespDTO;
 import org.example.admin.remote.LinkRemoteService;
