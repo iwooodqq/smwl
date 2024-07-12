@@ -128,12 +128,8 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
      */
     @Override
     public IPage<ShortLinkPageresDTO>pagelink(ShortLinkPagereqDTO shortLinkPagereqDTO) {
-        LambdaQueryWrapper<LinkDO> queryWrapper = Wrappers.lambdaQuery(LinkDO.class)
-                .eq(LinkDO::getGid, shortLinkPagereqDTO.getGid())
-                .eq(LinkDO::getDelFlag, 0)
-                .eq(LinkDO::getEnableStatus, 0);
-        ShortLinkPagereqDTO shortLinkPagereqDTO1 = baseMapper.selectPage(shortLinkPagereqDTO, queryWrapper);
-        return shortLinkPagereqDTO1.convert(each->{
+        IPage<LinkDO> resultPage = baseMapper.pageLink(shortLinkPagereqDTO);
+        return resultPage.convert(each->{
             ShortLinkPageresDTO bean = BeanUtil.toBean(each, ShortLinkPageresDTO.class);
             bean.setDomain("http://"+bean.getDomain());
             return bean;

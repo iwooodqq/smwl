@@ -28,6 +28,7 @@ public interface LinkRemoteService {
     static Result<IPage<ShortLinkPageresDTO>> shortLinkPagereqDTO(ShortLinkPagereqDTO shortLinkPagereqDTO){
         HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("gid",shortLinkPagereqDTO.getGid());
+        hashMap.put("orderTag", shortLinkPagereqDTO.getOrderTag());
         hashMap.put("current",shortLinkPagereqDTO.getCurrent());
         hashMap.put("size",shortLinkPagereqDTO.getSize());
         String s = HttpUtil.get("http://127.0.0.1:8001/api/short-link/admin/v1/page", hashMap);
