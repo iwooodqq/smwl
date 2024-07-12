@@ -1,13 +1,19 @@
 package org.example.project.dao.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.example.project.common.database.BaseDo;
 
 import java.util.Date;
 
 @TableName("t_link_stats_today")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class LinkStatsTodayDO extends BaseDo {
 
     /**
@@ -43,5 +49,5 @@ public class LinkStatsTodayDO extends BaseDo {
     /**
      * 今日ip数
      */
-    private Integer todayIpCount;
+    private Integer todayUip;
 }

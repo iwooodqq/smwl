@@ -75,6 +75,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
     private final LinkAccessLogsMapper linkAccessLogsMapper;
     private final LinkDeviceStatsMapper linkDeviceStatsMapper;
     private final LinkNetWorkStatsMapper linkNetWorkStatsMapper;
+    private final LinkStatsTodayMapper linkStatsTodayMapper;
     @Value("${short-link.stats.locale.amap-key}")
     private String amapkey;
     /**
@@ -389,6 +390,15 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .build();
             linkNetWorkStatsMapper.shortLinkNetworkState(linkNetworkStatsDO);
             baseMapper.incrementStats(gid, fullShortUrl, 1, atomicBoolean.get() ? 1 : 0, uipFirstFlag ? 1 : 0);
+            LinkStatsTodayDO linkStatsTodayDO = LinkStatsTodayDO.builder()
+                    .todayPv(1)
+                    .todayUv(atomicBoolean.get() ? 1 : 0)
+                    .todayUip(uipFirstFlag ? 1 : 0)
+                    .gid(gid)
+                    .fullShortUrl(fullShortUrl)
+                    .date(new Date())
+                    .build();
+            linkStatsTodayMapper.shortLinkTodayState(linkStatsTodayDO);
         }
     }
 
