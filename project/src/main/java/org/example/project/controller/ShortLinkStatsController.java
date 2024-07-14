@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import org.example.project.common.convention.result.Result;
 import org.example.project.common.convention.result.Results;
+import org.example.project.dto.req.ShortLinkGroupStatsAccessRecordReqDTO;
 import org.example.project.dto.req.ShortLinkGroupStatsReqDTO;
 import org.example.project.dto.req.ShortLinkStatsAccessRecordReqDTO;
 import org.example.project.dto.req.ShortLinkStatsReqDTO;
@@ -44,5 +45,11 @@ public class ShortLinkStatsController {
     public Result<ShortLinkStatsRespDTO> groupShortLinkStats(ShortLinkGroupStatsReqDTO requestParam) {
         return Results.success(shortLinkStatsService.groupShortLinkStats(requestParam));
     }
-
+    /**
+     * 访问分组短链接指定时间内访问记录监控数据
+     */
+    @GetMapping("/api/short-link/v1/stats/access-record/group")
+    public Result<IPage<ShortLinkStatsAccessRecordRespDTO>> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam) {
+        return Results.success(shortLinkStatsService.ShortLinkStatsAccessRecord(requestParam));
+    }
 }

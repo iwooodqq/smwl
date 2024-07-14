@@ -6,6 +6,7 @@ import org.example.admin.common.convention.result.Result;
 import org.example.admin.dto.req.ShortLinkStatsReqDTO;
 import org.example.admin.dto.res.ShortLinkStatsRespDTO;
 import org.example.admin.remote.LinkRemoteService;
+import org.example.admin.remote.dto.req.ShortLinkGroupStatsAccessRecordReqDTO;
 import org.example.admin.remote.dto.req.ShortLinkGroupStatsReqDTO;
 import org.example.admin.remote.dto.req.ShortLinkStatsAccessRecordReqDTO;
 import org.example.admin.remote.dto.res.ShortLinkStatsAccessRecordRespDTO;
@@ -38,4 +39,11 @@ public class ShortLinkStatsController {
         return LinkRemoteService.groupShortLinkStats(requestParam);
     }
 
+    /**
+     * 访问分组短链接指定时间内访问记录监控数据
+     */
+    @GetMapping("/api/short-link/admin/v1/stats/access-record/group")
+    public Result<IPage<ShortLinkStatsAccessRecordRespDTO>> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam) {
+        return LinkRemoteService.groupShortLinkStatsAccessRecord(requestParam);
+    }
 }
