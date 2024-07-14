@@ -78,15 +78,18 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
     private final LinkStatsTodayMapper linkStatsTodayMapper;
     @Value("${short-link.stats.locale.amap-key}")
     private String amapkey;
+    @Value("${short-link.domain.default}")
+    private String createShortLinkDefaultDomain;
     /**
      * 创建短链接
      */
     @Override
     public ShortLinkCreateResDTO create(ShortLinkCreateDTO shortLinkCreateDTO) {
         String generateSuffix = generateSuffix(shortLinkCreateDTO);
-        String fullShortUrl=shortLinkCreateDTO.getDomain()+"/"+generateSuffix;
+        String fullShortUrl=createShortLinkDefaultDomain+"/"+generateSuffix;
         LinkDO linkDO = BeanUtil.toBean(shortLinkCreateDTO, LinkDO.class);
         linkDO.setFullShortUrl(fullShortUrl);
+        linkDO.setDomain(createShortLinkDefaultDomain);
         linkDO.setShortUri(generateSuffix);
         linkDO.setTotalPv(0);
         linkDO.setTotalUv(0);
@@ -203,7 +206,11 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
     @Override
     public void restoreUrl(String shortUri, ServletRequest request, ServletResponse response)  {
         String serverName = request.getServerName();
-        String fullShortUri = serverName + "/" + shortUri;
+        String serverPort = Optional.of(request.getServerName())
+                .filter(each -> !Objects.equals(each, 80))
+                .map(String::valueOf).map(each->":"+each)
+                .orElse("");
+        String fullShortUri = serverName+ serverPort+ "/" + shortUri;
         String originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUri));
         if (StrUtil.isNotBlank(originalLink)){
             shortLinkStats(fullShortUri,null,request,response);
