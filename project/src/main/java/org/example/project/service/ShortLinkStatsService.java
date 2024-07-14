@@ -1,6 +1,7 @@
 package org.example.project.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.example.project.dto.req.ShortLinkGroupStatsReqDTO;
 import org.example.project.dto.req.ShortLinkStatsAccessRecordReqDTO;
 import org.example.project.dto.req.ShortLinkStatsReqDTO;
 
@@ -21,4 +22,6 @@ public interface ShortLinkStatsService {
     ShortLinkStatsRespDTO oneShortLinkStats(ShortLinkStatsReqDTO requestParam);
 
     IPage<ShortLinkStatsAccessRecordRespDTO> groupShortLinkStatsAccessRecord(ShortLinkStatsAccessRecordReqDTO requestParam);
+
+    ShortLinkStatsRespDTO groupShortLinkStats(ShortLinkGroupStatsReqDTO requestParam);
 }
