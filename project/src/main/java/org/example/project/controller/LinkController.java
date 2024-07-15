@@ -6,9 +6,11 @@ import jakarta.servlet.ServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.project.common.convention.result.Result;
 import org.example.project.common.convention.result.Results;
+import org.example.project.dto.req.ShortLinkBatchCreateReqDTO;
 import org.example.project.dto.req.ShortLinkCreateDTO;
 import org.example.project.dto.req.ShortLinkPagereqDTO;
 import org.example.project.dto.req.ShortLinkUpdateDTO;
+import org.example.project.dto.res.ShortLinkBatchCreateRespDTO;
 import org.example.project.dto.res.ShortLinkCountQueryResDTO;
 import org.example.project.dto.res.ShortLinkCreateResDTO;
 import org.example.project.dto.res.ShortLinkPageresDTO;
@@ -49,7 +51,13 @@ public class LinkController {
         List<ShortLinkCountQueryResDTO> shortLinkCountQueryResDTOS = linkService.listShortLinkCountQueryResDTO(requestParam);
         return Results.success(shortLinkCountQueryResDTOS);
     }
-
+    /**
+     * 批量创建短链接
+     */
+    @PostMapping("/api/short-link/v1/create/batch")
+    public Result<ShortLinkBatchCreateRespDTO> batchCreateShortLink(@RequestBody ShortLinkBatchCreateReqDTO requestParam) {
+        return Results.success(linkService.batchCreateShortLink(requestParam));
+    }
     /**
      * 短链接修改
      */

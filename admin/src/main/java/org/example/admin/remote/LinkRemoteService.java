@@ -10,11 +10,8 @@ import org.example.admin.dto.req.RecycleBinSaveReqDTO;
 import org.example.admin.dto.req.ShortLinkStatsReqDTO;
 import org.example.admin.dto.res.ShortLinkStatsRespDTO;
 import org.example.admin.remote.dto.req.*;
-import org.example.admin.remote.dto.res.ShortLinkCountQueryResDTO;
-import org.example.admin.remote.dto.res.ShortLinkCreateResDTO;
-import org.example.admin.remote.dto.res.ShortLinkPageresDTO;
+import org.example.admin.remote.dto.res.*;
 
-import org.example.admin.remote.dto.res.ShortLinkStatsAccessRecordRespDTO;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.HashMap;
@@ -126,6 +123,12 @@ public interface LinkRemoteService {
         stringObjectMap.remove("orders");
         stringObjectMap.remove("records");
         String resultBodyStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats/access-record/group", stringObjectMap);
+        return JSON.parseObject(resultBodyStr, new TypeReference<>() {
+        });
+    }
+
+    static Result<ShortLinkBatchCreateRespDTO> batchCreateShortLink(ShortLinkBatchCreateReqDTO requestParam) {
+        String resultBodyStr = HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/create/batch", JSON.toJSONString(requestParam));
         return JSON.parseObject(resultBodyStr, new TypeReference<>() {
         });
     }

@@ -28,12 +28,11 @@ import org.example.project.common.convention.exception.ServiceException;
 import org.example.project.common.enums.VailDateTypeEnum;
 import org.example.project.dao.entity.*;
 import org.example.project.dao.mapper.*;
+import org.example.project.dto.req.ShortLinkBatchCreateReqDTO;
 import org.example.project.dto.req.ShortLinkCreateDTO;
 import org.example.project.dto.req.ShortLinkPagereqDTO;
 import org.example.project.dto.req.ShortLinkUpdateDTO;
-import org.example.project.dto.res.ShortLinkCountQueryResDTO;
-import org.example.project.dto.res.ShortLinkCreateResDTO;
-import org.example.project.dto.res.ShortLinkPageresDTO;
+import org.example.project.dto.res.*;
 import org.example.project.service.LinkService;
 import org.example.project.toolkit.HashUtil;
 import org.example.project.toolkit.LinkUtil;
@@ -80,6 +79,37 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
     private String amapkey;
     @Value("${short-link.domain.default}")
     private String createShortLinkDefaultDomain;
+
+    /**
+     * 短链接批量创建
+     */
+    @Override
+    public ShortLinkBatchCreateRespDTO batchCreateShortLink(ShortLinkBatchCreateReqDTO requestParam) {
+        List<String> originUrls = requestParam.getOriginUrls();
+        List<String> describes = requestParam.getDescribes();
+        List<ShortLinkBaseInfoRespDTO> result = new ArrayList<>();
+        for (int i = 0; i < originUrls.size(); i++) {
+            ShortLinkCreateDTO shortLinkCreateReqDTO = BeanUtil.toBean(requestParam, ShortLinkCreateDTO.class);
+            shortLinkCreateReqDTO.setOriginUrl(originUrls.get(i));
+            shortLinkCreateReqDTO.setDescribe(describes.get(i));
+            try {
+                ShortLinkCreateResDTO shortLink = create(shortLinkCreateReqDTO);
+                ShortLinkBaseInfoRespDTO linkBaseInfoRespDTO = ShortLinkBaseInfoRespDTO.builder()
+                        .fullShortUrl(shortLink.getFullShortUri())
+                        .originUrl(shortLink.getOriginUri())
+                        .describe(describes.get(i))
+                        .build();
+                result.add(linkBaseInfoRespDTO);
+            } catch (Throwable ex) {
+                log.error("批量创建短链接失败，原始参数：{}", originUrls.get(i));
+            }
+        }
+        return ShortLinkBatchCreateRespDTO.builder()
+                .total(result.size())
+                .baseLinkInfos(result)
+                .build();
+    }
+
     /**
      * 创建短链接
      */
