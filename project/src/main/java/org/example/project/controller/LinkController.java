@@ -1,5 +1,6 @@
 package org.example.project.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -14,6 +15,7 @@ import org.example.project.dto.res.ShortLinkBatchCreateRespDTO;
 import org.example.project.dto.res.ShortLinkCountQueryResDTO;
 import org.example.project.dto.res.ShortLinkCreateResDTO;
 import org.example.project.dto.res.ShortLinkPageresDTO;
+import org.example.project.handler.CustomBlockHandler;
 import org.example.project.service.LinkService;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +31,11 @@ public class LinkController {
      * 短链接新增
      */
     @PostMapping("/api/short-link/admin/v1/create")
+    @SentinelResource(
+            value = "create_short-link",
+            blockHandler = "createShortLinkBlockHandlerMethod",
+            blockHandlerClass = CustomBlockHandler.class
+    )
     public Result<ShortLinkCreateResDTO> create(@RequestBody ShortLinkCreateDTO shortLinkCreateDTO) {
         ShortLinkCreateResDTO shortLinkCreateResDTO = linkService.create(shortLinkCreateDTO);
         return Results.success(shortLinkCreateResDTO);
