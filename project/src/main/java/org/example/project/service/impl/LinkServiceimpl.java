@@ -280,7 +280,7 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .eq(LinkDO::getEnableStatus, 0)
                     .eq(LinkDO::getFullShortUrl, fullShortUri);
             LinkDO linkDO = baseMapper.selectOne(queryWrapper);
-            if (linkDO == null||linkDO.getValidDate().before(new Date())) {
+            if (linkDO == null||(linkDO.getValidDate()!=null&&linkDO.getValidDate().before(new Date()))) {
                 stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUri),"-",30, TimeUnit.MINUTES);
                 ((HttpServletResponse)response).sendRedirect("/page/notfound");
                 return;
