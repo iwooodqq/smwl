@@ -223,10 +223,19 @@ public class LinkServiceimpl extends ServiceImpl<LinkMapper,LinkDO> implements L
                     .eq(LinkDO::getGid, shortLinkUpdateDTO.getGid())
                     .eq(LinkDO::getFullShortUrl, shortLinkUpdateDTO.getFullShortUrl())
                     .eq(LinkDO::getDelFlag, 0)
-                    .eq(LinkDO::getEnableStatus, 0)
-                    .set(Objects.equals(shortLinkUpdateDTO.getValidDateType(), VailDateTypeEnum.PERMANENT.getType()), LinkDO::getValidDate, null);
+                    .eq(LinkDO::getEnableStatus, 0);
             baseMapper.delete(wrapper);
             baseMapper.insert(linkDO);
+        }
+        if(!Objects.equals(haslinkDO.getValidDate(), shortLinkUpdateDTO.getValidDate())
+        ||!Objects.equals(haslinkDO.getValidDateType(), shortLinkUpdateDTO.getValidDateType())){
+            stringRedisTemplate.delete(String.format(GOTO_SHORT_LINK_KEY,shortLinkUpdateDTO.getFullShortUrl()));
+            if (haslinkDO.getValidDate()!=null&&haslinkDO.getValidDate().before(new Date())){
+                if (Objects.equals(shortLinkUpdateDTO.getValidDateType(), VailDateTypeEnum.PERMANENT.getType())
+                ||shortLinkUpdateDTO.getValidDate().after(new Date())){
+                    stringRedisTemplate.delete(String.format(GOTO_IS_NULL_SHORT_LINK_KEY,shortLinkUpdateDTO.getFullShortUrl()));
+                }
+            }
         }
     }
     /**
